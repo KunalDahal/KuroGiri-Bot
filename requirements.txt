@@ -4,5 +4,5 @@ pyromod
 pymongo
 dnspython
 aiohttp
-
 humanize
+python-dotenv

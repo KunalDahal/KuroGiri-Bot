@@ -94,8 +94,8 @@ class Bot(Client):
             sys.exit()
 
         self.set_parse_mode(ParseMode.HTML)
-        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated By \nhttps://t.me/Aris")
-        self.LOGGER(__name__).info(f"""KUROGIRI is Active""")
+        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated By \nhttps://t.me/aniindexadminbot")
+        self.LOGGER(__name__).info(f"""File Bot is Active""")
         self.username = usr_bot_me.username
         
         app = web.AppRunner(await web_server())

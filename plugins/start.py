@@ -4,7 +4,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE
+from config import ADMINS, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE
 from helper_func import subscribed, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
@@ -62,7 +62,7 @@ async def start_command(client: Client, message: Message):
         for msg in messages:
 
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+                caption = CUSTOM_CAPTION
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -85,19 +85,11 @@ async def start_command(client: Client, message: Message):
                 pass
 
 
-        k = await client.send_message(chat_id = message.from_user.id, text=f"<b>❗️ <u>IMPORTANT</u> ❗️</b>\n\nThis Video / File Will Be Deleted In {file_auto_delete} (Due To Copyright Issues).\n\n📌 Please Forward This Video / File To Somewhere Else And Start Downloading There.")
+        k = await client.send_message(chat_id = message.from_user.id, text=f"<b><u>IMPORTANT NOTICE</u></b>\n\nThis video/file will be automatically deleted in {file_auto_delete} due to copyright policies.\n\nPlease forward this video/file to your Saved Messages or another private chat and start downloading before it is removed.")
 
-        # Schedule the file deletion
         asyncio.create_task(delete_files(rave_msg, client, k))
-        
-        # for rave_msg in rave_msg: 
-            # try:
-                # await rave_msg.delete()
-                # await k.edit_text("Your Video / File Is Successfully Deleted ✅") 
-            # except:    
-                # pass 
-
         return
+    
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -107,14 +99,10 @@ async def start_command(client: Client, message: Message):
                 ]
             ]
         )
+        first = message.from_user.first_name
+        st=f"Hello {first}! Welcome to the bot. Use me to Fetch files from AniIndex."
         await message.reply_text(
-            text = START_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
-            ),
+            text = st,
             reply_markup = reply_markup,
             disable_web_page_preview = True,
             quote = True
@@ -145,15 +133,9 @@ async def not_joined(client: Client, message: Message):
     except IndexError:
         pass
 
-
+    ft= "Hello {first}, Access to this bot is restricted.\n You must join all 4 required channels to continue using the bot. After joining, press the 'Try Again' button below.\n You will not be able to use the bot without completing this step.".format(first = message.from_user.first_name)
     await message.reply(
-        text = FORCE_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
-            ),
+        text = ft,
         reply_markup = InlineKeyboardMarkup(buttons),
         quote = True,
         disable_web_page_preview = True
@@ -220,4 +202,4 @@ async def delete_files(messages, client, k):
             await client.delete_messages(chat_id=msg.chat.id, message_ids=[msg.id])
         except Exception as e:
             print(f"The attempt to delete the media {msg.id} was unsuccessful: {e}")
-    await k.edit_text("Your Video / File Is Successfully Deleted ✅")
+    await k.edit_text("Your Video / File Is Successfully Deleted ..")

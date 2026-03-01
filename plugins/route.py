@@ -4,4 +4,4 @@ routes = web.RouteTableDef()
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
-    return web.json_response("kurogiri bot is alive")
+    return web.json_response("File share is alive")
