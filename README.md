@@ -87,7 +87,7 @@ stats - checking your bot uptime
 
 More updates will be released later on.
 
-Stay connected with **MAinchannel** for future
+Stay connected with **KunalDahal** for future
 improvements, features, and announcements.
 
 -------------------------------------------------
