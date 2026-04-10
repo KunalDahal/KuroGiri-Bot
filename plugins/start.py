@@ -35,6 +35,8 @@ async def start_command(client: Client, message: Message):
         except: return
 
         string = await decode(base64_string)
+        if not string:
+            return
         argument = string.split("-")
 
         if len(argument) == 3:

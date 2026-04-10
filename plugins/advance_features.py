@@ -7,7 +7,7 @@ from plugins.FORMATS import *
 from plugins.autoDelete import convert_time
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from config import OWNER_ID
-from helper_func import S
+from helper_func import S, stylish_text
 from pyrogram import Client, filters
 from database.database import ocean
 

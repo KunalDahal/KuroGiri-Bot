@@ -300,14 +300,15 @@ async def cb_handler(client: Bot, query: CallbackQuery):
             await query.answer(S("♻️ Waiting for input..."))
             try:
                 button_name, button_link = await ocean.get_channel_button_link()
-                button_preview = [[InlineKeyboardButton(text=button_name, url=button_link)]]
                 set_msg = await client.ask(
                     chat_id=id,
                     text=S(f'<b>Send new button details within 1 minute to update it.\nFormat:\n<blockquote><code>Join Channel - https://t.me/btth480p</code></blockquote>\n\n<i>Preview below ⬇️</i></b>'),
                     timeout=60,
-                    reply_markup=InlineKeyboardMarkup(button_preview),
+                    reply_markup=ReplyKeyboardMarkup([['CANCEL']], one_time_keyboard=True, resize_keyboard=True),
                     disable_web_page_preview=True
                 )
+                if set_msg.text == 'CANCEL':
+                    return await set_msg.reply(S("<b><i>🆞 Cancelled.</i></b>"), reply_markup=ReplyKeyboardRemove())
                 button = set_msg.text.split(' - ')
                 if len(button) != 2:
                     markup = [[InlineKeyboardButton(S(f'Set Channel Button ➪'), callback_data='setcb')]]
@@ -374,8 +375,11 @@ async def cb_handler(client: Bot, query: CallbackQuery):
                 set_msg = await client.ask(
                     chat_id=id,
                     text=S(f'<b><blockquote>⏱ Current Timer: {timer}</blockquote>\n\nSend a number in seconds within 1 minute to update it.\n<blockquote>Example: <code>300</code>, <code>600</code>, <code>900</code></b></blockquote>'),
-                    timeout=60
+                    timeout=60,
+                    reply_markup=ReplyKeyboardMarkup([['CANCEL']], one_time_keyboard=True, resize_keyboard=True)
                 )
+                if set_msg.text == 'CANCEL':
+                    return await set_msg.reply(S("<b><i>🆞 Cancelled.</i></b>"), reply_markup=ReplyKeyboardRemove())
                 del_timer = set_msg.text.split()
                 if len(del_timer) == 1 and del_timer[0].isdigit():
                     DEL_TIMER = int(del_timer[0])

@@ -1,7 +1,7 @@
 import asyncio
 import re
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from helper_func import S
+from helper_func import S, stylish_text
 
 # ── Time conversion ──────────────────────────────────────────────────────────
 def convert_time(duration_seconds: int) -> str:
