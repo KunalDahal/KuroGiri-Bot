@@ -1,7 +1,7 @@
 services:
   telegram-bot:
     build: .
-    container_name: igivefun
+    container_name: aqua2
     restart: unless-stopped
 
     ports:

@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import random
@@ -15,36 +16,36 @@ from config import CUSTOM_CAPTION, OWNER_ID, PICS
 from plugins.autoDelete import auto_del_notification, delete_message
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from helper_func import banUser, is_userJoin, is_admin, subscribed, encode, decode, get_messages
-
+from helper_func import S
 
 @Bot.on_message(filters.command('start') & filters.private & ~banUser & subscribed)
-async def start_command(client: Client, message: Message): 
+async def start_command(client: Client, message: Message):
     await message.reply_chat_action(ChatAction.CHOOSE_STICKER)
-    id = message.from_user.id  
-    
+    id = message.from_user.id
+
     if not await ocean.present_user(id):
         try: await ocean.add_user(id)
         except: pass
-                
-    text = message.text        
-    if len(text)>7:
+
+    text = message.text
+    if len(text) > 7:
         await message.delete()
 
         try: base64_string = text.split(" ", 1)[1]
         except: return
-                
+
         string = await decode(base64_string)
         argument = string.split("-")
-        
+
         if len(argument) == 3:
             try:
                 start = int(int(argument[1]) / abs(client.db_channel.id))
                 end = int(int(argument[2]) / abs(client.db_channel.id))
             except:
                 return
-                    
+
             if start <= end:
-                ids = range(start,end+1)
+                ids = range(start, end + 1)
             else:
                 ids = []
                 i = start
@@ -53,135 +54,151 @@ async def start_command(client: Client, message: Message):
                     i -= 1
                     if i < end:
                         break
-                            
+
         elif len(argument) == 2:
             try: ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except: return
-                    
+
         last_message = None
-        await message.reply_chat_action(ChatAction.UPLOAD_DOCUMENT)  
-        
+        await message.reply_chat_action(ChatAction.UPLOAD_DOCUMENT)
+
         try: messages = await get_messages(client, ids)
-        except: return await message.reply("<b><i>Sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ..!</i></b>")
-            
-        AUTO_DEL, DEL_TIMER, HIDE_CAPTION, CHNL_BTN, PROTECT_MODE = await asyncio.gather(ocean.get_auto_delete(), ocean.get_del_timer(), ocean.get_hide_caption(), ocean.get_channel_button(), ocean.get_protect_content())   
-        if CHNL_BTN: button_name, button_link = await ocean.get_channel_button_link()
-            
+        except: return await message.reply(S("<b><i>Could not fetch the content. Try again later.</i></b>"))
+
+        AUTO_DEL, DEL_TIMER, HIDE_CAPTION, CHNL_BTN, PROTECT_MODE = await asyncio.gather(
+            ocean.get_auto_delete(), ocean.get_del_timer(), ocean.get_hide_caption(),
+            ocean.get_channel_button(), ocean.get_protect_content()
+        )
+        if CHNL_BTN:
+            button_name, button_link = await ocean.get_channel_button_link()
+
         for idx, msg in enumerate(messages):
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
-
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name
+                )
             elif HIDE_CAPTION and (msg.document or msg.audio):
                 caption = ""
-
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
             if CHNL_BTN:
-                reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(text=button_name, url=button_link)]]) if msg.document or msg.photo or msg.video or msg.audio else None
+                reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(text=button_name, url=button_link)]]) \
+                    if msg.document or msg.photo or msg.video or msg.audio else None
             else:
-                reply_markup = msg.reply_markup   
-                    
+                reply_markup = msg.reply_markup
+
             try:
-                copied_msg = await msg.copy(chat_id=id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_MODE)
+                copied_msg = await msg.copy(
+                    chat_id=id, caption=caption,
+                    parse_mode=ParseMode.HTML, reply_markup=reply_markup,
+                    protect_content=PROTECT_MODE
+                )
                 await asyncio.sleep(0.1)
 
                 if AUTO_DEL:
                     asyncio.create_task(delete_message(copied_msg, DEL_TIMER))
-                    if idx == len(messages) - 1: last_message = copied_msg
+                    if idx == len(messages) - 1:
+                        last_message = copied_msg
 
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                copied_msg = await msg.copy(chat_id=id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_MODE)
+                copied_msg = await msg.copy(
+                    chat_id=id, caption=caption,
+                    parse_mode=ParseMode.HTML, reply_markup=reply_markup,
+                    protect_content=PROTECT_MODE
+                )
                 await asyncio.sleep(0.1)
-                
+
                 if AUTO_DEL:
                     asyncio.create_task(delete_message(copied_msg, DEL_TIMER))
-                    if idx == len(messages) - 1: last_message = copied_msg
-                        
+                    if idx == len(messages) - 1:
+                        last_message = copied_msg
+
         if AUTO_DEL and last_message:
-                asyncio.create_task(auto_del_notification(client.username, last_message, DEL_TIMER, message.command[1]))
-                        
-    else:   
-        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('🤖 Aʙᴏᴜᴛ ᴍᴇ', callback_data= 'about'), InlineKeyboardButton('Sᴇᴛᴛɪɴɢs ⚙️', callback_data='setting')]])
+            asyncio.create_task(auto_del_notification(client.username, last_message, DEL_TIMER, message.command[1]))
+
+    else:
+        reply_markup = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(S('About Me'), callback_data='about'),
+                InlineKeyboardButton(S('Settings'), callback_data='setting')
+            ]
+        ])
 
         await message.reply_photo(
-            photo = random.choice(PICS),
-            caption = START_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
+            photo=random.choice(PICS),
+            caption=START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id
             ),
-            reply_markup = reply_markup,
-	        message_effect_id=5104841245755180586 #🔥
+            reply_markup=reply_markup,
+            message_effect_id=5104841245755180586
         )
         try: await message.delete()
         except: pass
 
-   
+
 ##===================================================================================================================##
-
-#TRIGGRED START MESSAGE FOR HANDLE FORCE SUB MESSAGE AND FORCE SUB CHANNEL IF A USER NOT JOINED A CHANNEL
-
-##===================================================================================================================##   
-
+# TRIGGERED START MESSAGE — HANDLES FORCE SUB PROMPT WHEN USER HAS NOT JOINED REQUIRED CHANNELS
+##===================================================================================================================##
 
 chat_data_cache = {}
 
 @Bot.on_message(filters.command('start') & filters.private & ~banUser)
 async def not_joined(client: Client, message: Message):
-    temp = await message.reply(f"<b>??</b>")
-    
+    temp = await message.reply(S("<b>Verifying access...</b>"))
+
     user_id = message.from_user.id
-               
+
     REQFSUB = await ocean.get_request_forcesub()
     INVITE_EXPIRE_TIME = await ocean.get_invite_expire_time()
     MASK_BUTTON_NAME, MASK_BUTTON_LINK = await ocean.get_mask_button()
-    
+
     channel_buttons = []
     count = 0
 
     try:
         for total, chat_id in enumerate(await ocean.get_all_channels(), start=1):
             await message.reply_chat_action(ChatAction.PLAYING)
-            
+
             if not await is_userJoin(client, user_id, chat_id):
                 try:
                     if chat_id in chat_data_cache:
-                        data = chat_data_cache[chat_id]  # Get data from cache
+                        data = chat_data_cache[chat_id]
                     else:
-                        data = await client.get_chat(chat_id)  # Fetch from API
-                        chat_data_cache[chat_id] = data  # Store in cache
-                    
+                        data = await client.get_chat(chat_id)
+                        chat_data_cache[chat_id] = data
+
                     cname = data.title
-                    
-                    # Handle private channels and links
                     link = None
                     link_data = await ocean.get_stored_reqLink(chat_id)
-                    
+
                     if link_data:
                         link = link_data.get('link')
                         expire_at = link_data.get('expire_at')
-                        
-                        # Check if link is expired or legacy link needing rotation
+
                         if (expire_at and time.time() > expire_at) or (not expire_at and INVITE_EXPIRE_TIME > 0):
                             try:
                                 if link:
                                     await client.revoke_chat_invite_link(chat_id, link)
                             except: pass
-                            link = None # Trigger regeneration
-                    
-                    if REQFSUB and not bool(data.username): 
+                            link = None
+
+                    if REQFSUB and not bool(data.username):
                         await ocean.add_reqChannel(chat_id)
-                        
-                        # Generate new link if not exists or expired
+
                         if not link:
                             expire_date_int = int(time.time() + INVITE_EXPIRE_TIME) if INVITE_EXPIRE_TIME > 0 else None
                             expire_date = datetime.fromtimestamp(expire_date_int + 5) if expire_date_int else None
-                            
-                            invite = await client.create_chat_invite_link(chat_id=chat_id, creates_join_request=True, expire_date=expire_date)
+
+                            invite = await client.create_chat_invite_link(
+                                chat_id=chat_id, creates_join_request=True, expire_date=expire_date
+                            )
                             link = invite.invite_link
                             await ocean.store_reqLink(chat_id, link, expire_at=expire_date_int)
                     else:
@@ -189,12 +206,11 @@ async def not_joined(client: Client, message: Message):
                             if not link:
                                 expire_date_int = int(time.time() + INVITE_EXPIRE_TIME)
                                 expire_date = datetime.fromtimestamp(expire_date_int + 5)
-                                
+
                                 invite = await client.create_chat_invite_link(chat_id=chat_id, expire_date=expire_date)
                                 link = invite.invite_link
                                 await ocean.store_reqLink(chat_id, link, expire_at=expire_date_int)
                         else:
-                            # If no expire time set, use the default invite link or generate a permanent one if needed
                             if not link:
                                 link = data.invite_link
                                 if not link:
@@ -202,28 +218,33 @@ async def not_joined(client: Client, message: Message):
                                     link = invite.invite_link
                                 await ocean.store_reqLink(chat_id, link)
 
-                    channel_buttons.append(InlineKeyboardButton(text=f"ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ {count + 1}", url=link))
+                    channel_buttons.append(InlineKeyboardButton(
+                        text=S(f"Join Channel {count + 1}"), url=link
+                    ))
                     count += 1
-                    await temp.edit(f"<b>{'! ' * count}</b>")
-                                                            
+                    await temp.edit(S(f"<b>Checking {count} channel(s)...</b>"))
+
                 except Exception as e:
                     print(f"Can't Export Channel Name and Link..., Please Check If the Bot is admin in the FORCE SUB CHANNELS:\nProvided Force sub Channel:- {chat_id}")
-                    return await temp.edit(f"<b><i>! Eʀʀᴏʀ, Cᴏɴᴛᴀᴄᴛ ᴅᴇᴠᴇʟᴏᴘᴇʀ ᴛᴏ sᴏʟᴠᴇ ᴛʜᴇ ɪssᴜᴇs @Shidoteshika1</i></b>\n<blockquote expandable><b>Rᴇᴀsᴏɴ:</b> {e}</blockquote>")
+                    return await temp.edit(S(
+                        f"<b><i>Setup error detected. Reach out to the developer — @OceanXBotz</i></b>\n"
+                        f"<blockquote expandable><b>Reason:</b> {e}</blockquote>"
+                    ))
 
         buttons = [channel_buttons[i:i + 2] for i in range(0, len(channel_buttons), 2)]
-        
+
         if MASK_BUTTON_NAME and MASK_BUTTON_LINK:
-            mask_button = InlineKeyboardButton(text=MASK_BUTTON_NAME, url=MASK_BUTTON_LINK)
+            mask_button = InlineKeyboardButton(text=S(MASK_BUTTON_NAME), url=MASK_BUTTON_LINK)
             if count % 2 != 0:
-                # If there's an odd number of chnlss, the last row has only 1 button. 
-                # Place mask button next to it.
                 buttons[-1].append(mask_button)
             else:
-                # Iff even, place mask button in a new row.. 
-                buttons.append([mask_button]) 
+                buttons.append([mask_button])
 
         try:
-            buttons.append([InlineKeyboardButton(text='♻️ Tʀʏ Aɢᴀɪɴ', url=f"https://t.me/{client.username}?start={message.command[1]}")])
+            buttons.append([InlineKeyboardButton(
+                text=S("Try Again"),
+                url=f"https://t.me/{client.username}?start={message.command[1]}"
+            )])
         except IndexError:
             pass
 
@@ -240,31 +261,34 @@ async def not_joined(client: Client, message: Message):
             ),
             reply_markup=InlineKeyboardMarkup(buttons),
         )
-                
+
         try: await message.delete()
         except: pass
-                        
+
     except Exception as e:
         print(f"Unable to perform forcesub buttons reason : {e}")
-        return await temp.edit(f"<b><i>! Eʀʀᴏʀ, Cᴏɴᴛᴀᴄᴛ ᴅᴇᴠᴇʟᴏᴘᴇʀ ᴛᴏ sᴏʟᴠᴇ ᴛʜᴇ ɪssᴜᴇs @Shidoteshika1</i></b>\n<blockquote expandable><b>Rᴇᴀsᴏɴ:</b> {e}</blockquote>")
+        return await temp.edit(S(
+            f"<b><i>An unexpected error occurred. Contact the developer — @OceanXBotz</i></b>\n"
+            f"<blockquote expandable><b>Reason:</b> {e}</blockquote>"
+        ))
 
 
-#=====================================================================================##
-#......... RESTART COMMAND FOR RESTARTING BOT .......#
-#=====================================================================================##
+##===================================================================================================================##
+# RESTART COMMAND
+##===================================================================================================================##
 
 @Bot.on_message(filters.command('restart') & filters.private & filters.user(OWNER_ID))
 async def restart_bot(client: Client, message: Message):
     print("Restarting bot...")
-    msg = await message.reply(text=f"<b><i><blockquote>⚠️ {client.name} ɢᴏɪɴɢ ᴛᴏ Rᴇsᴛᴀʀᴛ...</blockquote></i></b>")
+    msg = await message.reply(text=S(f"<b><i><blockquote>~ {client.name} is restarting, hold on...</blockquote></i></b>"))
     try:
-        await asyncio.sleep(6)  # Wait for 6 seconds before restarting
+        await asyncio.sleep(6)
         await msg.delete()
-        args = [sys.executable, "main.py"]  # Adjust this if your start file is named differently
+        args = [sys.executable, "main.py"]
         os.execl(sys.executable, *args)
     except Exception as e:
         print(f"Error occured while Restarting the bot: {e}")
-        return await msg.edit_text(f"<b><i>! Eʀʀᴏʀ, Cᴏɴᴛᴀᴄᴛ ᴅᴇᴠᴇʟᴏᴘᴇʀ ᴛᴏ sᴏʟᴠᴇ ᴛʜᴇ ɪssᴜᴇs @Shidoteshika1</i></b>\n<blockquote expandable><b>Rᴇᴀsᴏɴ:</b> {e}</blockquote>")
-    # Optionally, you can add cleanup tasks here
-    #subprocess.Popen([sys.executable, "main.py"])  # Adjust this if your start file is named differently
-    #sys.exit()
+        return await msg.edit_text(S(
+            f"<b><i>Restart failed. Contact the developer — @OceanXBotz</i></b>\n"
+            f"<blockquote expandable><b>Reason:</b> {e}</blockquote>"
+        ))

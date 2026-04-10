@@ -165,6 +165,26 @@ def get_readable_time(seconds: int) -> str:
     up_time += ":".join(time_list)
     return up_time
 
+import re
+def stylish_text(text: str) -> str:
+    normal = (
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+    )
+
+    cool = (
+        "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+        "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+    )
+
+    table = str.maketrans(normal, cool)
+    return text.translate(table)
+
+_TAG_RE = re.compile(r'(<[^>]+>|\{[^}]*\})')
+
+def S(text: str) -> str:
+    parts = _TAG_RE.split(text)
+    return ''.join(p if _TAG_RE.fullmatch(p) else stylish_text(p) for p in parts) 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Check user subscription in Channels
 """async def is_subscribed(filter, client, update):

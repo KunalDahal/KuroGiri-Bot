@@ -1,3 +1,4 @@
+import re
 import random
 from bot import Bot
 from config import OWNER_ID, PICS
@@ -9,272 +10,232 @@ from pyrogram.types import (
 )
 from helper_func import banUser, is_admin
 from database.database import ocean
+from plugins.FORMATS import HELP_TEXT
+from helper_func import S
 
-# ══════════════════════════════════════════════════════════════════
-#                        HELP PANEL TEXTS
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+#                          ADMIN / OWNER HELP TEXTS
+# ══════════════════════════════════════════════════════════════════════════════
 
-HELP_PANEL_MAIN = """<b>📖 Hᴇʟʟᴏ {first}, Wᴇʟᴄᴏᴍᴇ ᴛᴏ ᴛʜᴇ Hᴇʟᴘ Pᴀɴᴇʟ !
+HELP_PANEL_MAIN = S("""<b>📖 Hey {first}, welcome to the Help Panel!
 
-<blockquote expandable>➪ I ᴀᴍ ᴀɴ ᴀᴅᴠᴀɴᴄᴇ ғɪʟᴇ-sʜᴀʀɪɴɢ ʙᴏᴛ ᴡɪᴛʜ ᴘᴏᴡᴇʀғᴜʟ ᴀᴅᴍɪɴ ᴛᴏᴏʟs, ʙᴜɪʟᴛ ᴛᴏ ʜᴇʟᴘ ʏᴏᴜ ᴅɪsᴛʀɪʙᴜᴛᴇ ᴄᴏɴᴛᴇɴᴛ sᴇᴄᴜʀᴇʟʏ ᴠɪᴀ ᴇɴᴄᴏᴅᴇᴅ ʟɪɴᴋs.
+<blockquote expandable>➪ I am an advanced file-sharing bot with powerful admin tools, built to distribute content securely via encoded links.
 
-➪ Usᴇ ᴛʜᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ ᴛᴏ ɴᴀᴠɪɢᴀᴛᴇ ᴛʜᴇ ʜᴇʟᴘ sᴇᴄᴛɪᴏɴs.</blockquote>
+➪ Use the buttons below to browse each help section.</blockquote>
 
-‣ ᴜᴘᴅᴀᴛᴇs: <a href='https://t.me/OceanXBotz'>ᴏᴄᴇᴀɴxʙᴏᴛᴢ</a>
-‣ ꜱᴜᴘᴘᴏʀᴛ: <a href='https://t.me/Anime_Ocean_Official'>ᴀɴɪᴍᴇs ᴏᴄᴇᴀɴ</a></b>"""
-
-
-HELP_ADMIN_CMDS = """<b>🤖 𝗔𝗗𝗠𝗜𝗡 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦
-
-<blockquote expandable>
-📢 <b>/broadcast</b>
-↳ Bʀᴏᴀᴅᴄᴀsᴛ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴀʟʟ ʙᴏᴛ ᴜsᴇʀs.
-   ᴜsᴀɢᴇ: Rᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴡɪᴛʜ /broadcast
-   ᴏᴘᴛɪᴏɴ: <code>/broadcast silent</code> — ɴᴏ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ
-
-🛑 <b>/cancel</b>
-↳ Cᴀɴᴄᴇʟ ᴀɴ ᴏɴɢᴏɪɴɢ ʙʀᴏᴀᴅᴄᴀsᴛ ᴏᴘᴇʀᴀᴛɪᴏɴ.
-
-📊 <b>/status</b>
-↳ Vɪᴇᴡ ᴛᴏᴛᴀʟ ᴜsᴇʀs, ʙᴏᴛ ᴜᴘᴛɪᴍᴇ ᴀɴᴅ ᴘɪɴɢ.
-
-📋 <b>/cmd</b>
-↳ Vɪᴇᴡ ᴀ sʜᴏʀᴛ sᴜᴍᴍᴀʀʏ ᴏғ ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅs.
-
-🔗 <b>/batch</b>
-↳ Gᴇɴᴇʀᴀᴛᴇ ᴏɴᴇ ʟɪɴᴋ ᴛʜᴀᴛ sᴇɴᴅs ᴀ ʀᴀɴɢᴇ ᴏғ
-   ᴍᴇssᴀɢᴇs (ᴇᴘɪsᴏᴅᴇ ʙᴀᴛᴄʜᴇs ᴇᴛᴄ.) ᴀᴛ ᴏɴᴄᴇ.
-
-🔗 <b>/genlink</b>
-↳ Gᴇɴᴇʀᴀᴛᴇ ᴀ sʜᴀʀᴇᴀʙʟᴇ ʟɪɴᴋ ғᴏʀ ᴀ sɪɴɢʟᴇ
-   ᴍᴇssᴀɢᴇ ғʀᴏᴍ ʏᴏᴜʀ Dʙ Cʜᴀɴɴᴇʟ.
-
-🔗 <b>/flink</b>
-↳ Gᴇɴᴇʀᴀᴛᴇ ᴍᴜʟᴛɪᴘʟᴇ ǫᴜᴀʟɪᴛʏ ʟɪɴᴋs ɪɴ ᴀ
-   ᴄᴜsᴛᴏᴍ ғᴏʀᴍᴀᴛ (ᴇ.ɢ. 360P, 720P, 1080P).
-
-📡 <b>/fsub_chnl</b>
-↳ Vɪᴇᴡ ᴀʟʟ ᴄᴜʀʀᴇɴᴛ ғᴏʀᴄᴇ-sᴜʙ ᴄʜᴀɴɴᴇʟs.
-
-🚫 <b>/banuser_list</b>
-↳ Vɪᴇᴡ ᴀʟʟ ʙᴀɴɴᴇᴅ ᴜsᴇʀs.
-
-🚫 <b>/add_banuser</b> [user_id(s)]
-↳ Bᴀɴ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴜsᴇʀs.
-
-✅ <b>/del_banuser</b> [user_id(s) | all]
-↳ Uɴʙᴀɴ ᴜsᴇʀ(s) ᴏʀ ᴄʟᴇᴀʀ ᴀʟʟ ʙᴀɴs.
-</blockquote></b>"""
+‣ Updates: <a href='https://t.me/OceanXBotz'>OceanXBotz</a>
+‣ Support: <a href='https://t.me/Anime_Ocean_Official'>Animes Ocean</a></b>""")
 
 
-HELP_OWNER_CMDS = """<b>👑 𝗢𝗪𝗡𝗘𝗥-𝗢𝗡𝗟𝗬 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦
+HELP_ADMIN_CMDS = S("""<b>🤖 ADMIN COMMANDS
 
 <blockquote expandable>
-➕ <b>/add_fsub</b> [channel_id(s)]
-↳ Aᴅᴅ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴄʜᴀɴɴᴇʟ ɪᴅs ᴀs ғᴏʀᴄᴇ-sᴜʙ.
-   ᴇxᴀᴍᴘʟᴇ: <code>/add_fsub -100xxxxxxxxxx</code>
+📢 /broadcast
+↳ Push a message out to every bot user.
+   Usage: Reply to any message with /broadcast
+   Option: /broadcast silent — no notification sound
 
-➖ <b>/del_fsub</b> [channel_id(s) | all]
-↳ Rᴇᴍᴏᴠᴇ ᴏɴᴇ, ᴍᴜʟᴛɪᴘʟᴇ, ᴏʀ ᴀʟʟ ғᴏʀᴄᴇ-sᴜʙ ᴄʜᴀɴɴᴇʟs.
-   ᴇxᴀᴍᴘʟᴇ: <code>/del_fsub all</code>
+🛑 /cancel
+↳ Stop a broadcast that is currently running.
 
-👤 <b>/admin_list</b>
-↳ Vɪᴇᴡ ᴀʟʟ ᴄᴜʀʀᴇɴᴛ ʙᴏᴛ ᴀᴅᴍɪɴs.
+📊 /status
+↳ Check total users, uptime and ping.
 
-➕ <b>/add_admins</b> [user_id(s)]
-↳ Gʀᴀɴᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss ᴛᴏ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴜsᴇʀs.
-   ᴇxᴀᴍᴘʟᴇ: <code>/add_admins 123456789 987654321</code>
+📋 /cmd
+↳ View a quick summary of admin commands.
 
-➖ <b>/del_admins</b> [user_id(s) | all]
-↳ Rᴇᴠᴏᴋᴇ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss ғʀᴏᴍ ᴜsᴇʀ(s).
-   ᴇxᴀᴍᴘʟᴇ: <code>/del_admins all</code>
+🔗 /batch
+↳ Generate a single link that delivers a range of messages (e.g. episode batches) at once.
 
-🔄 <b>/restart</b>
-↳ Rᴇsᴛᴀʀᴛ ᴛʜᴇ ʙᴏᴛ ɪɴsᴛᴀɴᴄᴇ (ᴏᴡɴᴇʀ ᴏɴʟʏ).
-</blockquote></b>"""
+🔗 /genlink
+↳ Generate a shareable link for one specific message from your DB Channel.
 
+🔗 /flink
+↳ Generate multiple quality links in a custom format (e.g. 360P, 720P, 1080P).
 
-HELP_SETTINGS = """<b>⚙️ 𝗦𝗘𝗧𝗧𝗜𝗡𝗚𝗦 & 𝗖𝗢𝗡𝗙𝗜𝗚𝗨𝗥𝗔𝗧𝗜𝗢𝗡𝗦
+📡 /fsub_chnl
+↳ List all currently active force-sub channels.
 
-<blockquote expandable>
-🗑 <b>/auto_del</b>
-↳ Cᴏɴᴛʀᴏʟ ᴀᴜᴛᴏ-ᴅᴇʟᴇᴛᴇ ᴍᴏᴅᴇ ᴀɴᴅ ᴛɪᴍᴇʀ.
-   ᴡʜᴇɴ ᴇɴᴀʙʟᴇᴅ, ᴀʟʟ sᴇɴᴛ ғɪʟᴇs ᴀʀᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ
-   ᴅᴇʟᴇᴛᴇᴅ ᴀғᴛᴇʀ ᴛʜᴇ sᴇᴛ ᴛɪᴍᴇʀ ᴇxᴘɪʀᴇs.
+🚫 /banuser_list
+↳ View everyone who is currently banned.
 
-📁 <b>/files</b>
-↳ Mᴀɴᴀɢᴇ ᴀʟʟ ғɪʟᴇ-ʀᴇʟᴀᴛᴇᴅ sᴇᴛᴛɪɴɢs:
-   • 🔒 Pʀᴏᴛᴇᴄᴛ Cᴏɴᴛᴇɴᴛ — ᴘʀᴇᴠᴇɴᴛ ᴜsᴇʀs ғʀᴏᴍ
-     ғᴏʀᴡᴀʀᴅɪɴɢ / sᴀᴠɪɴɢ ғɪʟᴇs
-   • 🫥 Hɪᴅᴇ Cᴀᴘᴛɪᴏɴ — sᴛʀɪᴘ ᴄᴀᴘᴛɪᴏɴ ғʀᴏᴍ
-     ᴅᴏᴄᴜᴍᴇɴᴛs / ᴀᴜᴅɪᴏs ᴡʜᴇɴ sᴇɴᴛ
-   • 🔘 Cʜᴀɴɴᴇʟ Bᴜᴛᴛᴏɴ — ᴀᴛᴛᴀᴄʜ ᴀ ᴄᴜsᴛᴏᴍ
-     ɪɴʟɪɴᴇ ʙᴜᴛᴛᴏɴ ᴛᴏ ᴇᴠᴇʀʏ ᴅᴇʟɪᴠᴇʀᴇᴅ ғɪʟᴇ
+🚫 /add_banuser [user_id(s)]
+↳ Ban one or more users.
 
-📢 <b>/req_fsub</b>
-↳ Eɴᴀʙʟᴇ / Dɪsᴀʙʟᴇ Rᴇǫᴜᴇsᴛ Fᴏʀᴄᴇ Sᴜʙ ᴍᴏᴅᴇ.
-   ᴡʜᴇɴ ᴏɴ, ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀɴɴᴇʟs ᴜsᴇ ᴊᴏɪɴ-ʀᴇǫᴜᴇsᴛ
-   ɪɴsᴛᴇᴀᴅ ᴏғ ᴅɪʀᴇᴄᴛ ᴍᴇᴍʙᴇʀsʜɪᴘ ᴄʜᴇᴄᴋ.
-   ᴀʟsᴏ ᴀᴄᴄᴇss ᴀᴅᴠᴀɴᴄᴇᴅ ʀᴇǫᴜᴇsᴛ-ʟɪɴᴋ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ.
-
-🛠 <b>/us</b> (U-Sᴇᴛᴛɪɴɢs)
-↳ Aᴅᴠᴀɴᴄᴇᴅ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴs:
-   • ⏱ Sᴇᴛ Iɴᴠɪᴛᴇ Lɪɴᴋ Exᴘɪʀᴇ Tɪᴍᴇ — ʀᴏᴛᴀᴛᴇ
-     ɪɴᴠɪᴛᴇ ʟɪɴᴋs ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀᴛ sᴇᴛ ɪɴᴛᴇʀᴠᴀʟs
-   • 🎭 Sᴇᴛ Mᴀsᴋ Bᴜᴛᴛᴏɴ — ᴀᴅᴅ ᴀ ᴄᴜsᴛᴏᴍ ʙᴜᴛᴛᴏɴ
-     ɪɴ ᴛʜᴇ ғᴏʀᴄᴇ-sᴜʙ sᴄʀᴇᴇɴ (ᴇ.ɢ. Jᴏɪɴ VIP)
-</blockquote></b>"""
+✅ /del_banuser [user_id(s) | all]
+↳ Unban user(s) or clear every ban at once.
+</blockquote></b>""")
 
 
-HELP_FEATURES = """<b>✨ 𝗙𝗘𝗔𝗧𝗨𝗥𝗘𝗦 𝗢𝗩𝗘𝗥𝗩𝗜𝗘𝗪
+HELP_OWNER_CMDS = S("""<b>👑 OWNER-ONLY COMMANDS
 
 <blockquote expandable>
-🔐 𝗙𝗼𝗿𝗰𝗲 𝗦𝘂𝗯𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻
-↳ Usᴇʀs ᴍᴜsᴛ ᴊᴏɪɴ ᴀʟʟ ᴄᴏɴғɪɢᴜʀᴇᴅ ᴄʜᴀɴɴᴇʟs
-   ʙᴇғᴏʀᴇ ᴀᴄᴄᴇssɪɴɢ ᴀɴʏ ғɪʟᴇs. Sᴜᴘᴘᴏʀᴛs ʙᴏᴛʜ
-   ᴘᴜʙʟɪᴄ ᴀɴᴅ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀɴɴᴇʟs.
+➕ /add_fsub [channel_id(s)]
+↳ Register one or more channel IDs as force-sub.
+   Example: /add_fsub -100xxxxxxxxxx
 
-🚦 𝗥𝗲𝗾𝘂𝗲𝘀𝘁 𝗙𝗼𝗿𝗰𝗲 𝗦𝘂𝗯
-↳ Fᴏʀ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀɴɴᴇʟs — ᴜsᴇʀs sᴜʙᴍɪᴛ ᴀ
-   ᴊᴏɪɴ-ʀᴇǫᴜᴇsᴛ ᴀɴᴅ ᴀʀᴇ ᴛʀᴇᴀᴛᴇᴅ ᴀs ᴍᴇᴍʙᴇʀs
-   ᴏɴᴄᴇ ᴛʜᴇ ʀᴇǫᴜᴇsᴛ ɪs sᴇɴᴛ.
+➖ /del_fsub [channel_id(s) | all]
+↳ Remove specific channels or wipe all force-sub entries.
+   Example: /del_fsub all
 
-🗑 𝗔𝘂𝘁𝗼 𝗗𝗲𝗹𝗲𝘁𝗲
-↳ Fɪʟᴇs ᴀᴜᴛᴏ-ᴅᴇʟᴇᴛᴇ ᴀғᴛᴇʀ ᴀ ᴄᴜsᴛᴏᴍ ᴛɪᴍᴇʀ.
-   Usᴇʀs ʀᴇᴄᴇɪᴠᴇ ᴀ ᴡᴀʀɴɪɴɢ ᴡɪᴛʜ ᴀ ʀᴇ-ᴅᴏᴡɴʟᴏᴀᴅ
-   ʙᴜᴛᴛᴏɴ ᴀᴀғᴛᴇʀ ᴅᴇʟᴇᴛɪᴏɴ.
+👤 /admin_list
+↳ View all current bot admins.
 
-🔒 𝗣𝗿𝗼𝘁𝗲𝗰𝘁 𝗖𝗼𝗻𝘁𝗲𝗻𝘁
-↳ Fɪʟᴇs ᴄᴀɴɴᴏᴛ ʙᴇ ғᴏʀᴡᴀʀᴅᴇᴅ ᴏʀ sᴀᴠᴇᴅ ʙʏ
-   ᴜsᴇʀs, ᴘʀᴏᴛᴇᴄᴛɪɴɢ ʏᴏᴜʀ ᴄᴏɴᴛᴇɴᴛ.
+➕ /add_admins [user_id(s)]
+↳ Grant admin access to one or more users.
+   Example: /add_admins 123456789 987654321
 
-🫥 𝗛𝗶𝗱𝗲 𝗖𝗮𝗽𝘁𝗶𝗼𝗻
-↳ Sᴛʀɪᴘs ᴄᴀᴘᴛɪᴏɴs ғʀᴏᴍ ᴅᴏᴄᴜᴍᴇɴᴛs ᴀɴᴅ
-   ᴀᴜᴅɪᴏs ʙᴇғᴏʀᴇ ᴅᴇʟɪᴠᴇʀɪɴɢ ᴛᴏ ᴜsᴇʀs.
+➖ /del_admins [user_id(s) | all]
+↳ Revoke admin access from user(s).
+   Example: /del_admins all
 
-🔘 𝗖𝗵𝗮𝗻𝗻𝗲𝗹 𝗕𝘂𝘁𝘁𝗼𝗻
-↳ Aᴛᴛᴀᴄʜ ᴀ ᴄᴜsᴛᴏᴍ ɪɴʟɪɴᴇ ʙᴜᴛᴛᴏɴ (ᴡɪᴛʜ
-   ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ʟɪɴᴋ) ᴛᴏ ᴇᴠᴇʀʏ ᴅᴇʟɪᴠᴇʀᴇᴅ ғɪʟᴇ.
-
-🎭 𝗠𝗮𝘀𝗸 𝗕𝘂𝘁𝘁𝗼𝗻
-↳ Sʜᴏᴡ ᴀ ᴄᴜsᴛᴏᴍ ʙᴜᴛᴛᴏɴ ɪɴ ᴛʜᴇ ғᴏʀᴄᴇ-sᴜʙ
-   sᴄʀᴇᴇɴ, ʀᴇᴅɪʀᴇᴄᴛɪɴɢ ᴜsᴇʀs ᴛᴏ ᴀɴʏ ᴜʀʟ.
-
-⏱ 𝗜𝗻𝘃𝗶𝘁𝗲 𝗟𝗶𝗻𝗸 𝗘𝘅𝗽𝗶𝗿𝘆
-↳ Gᴇɴᴇʀᴀᴛᴇ ᴛɪᴍᴇ-ʟɪᴍɪᴛᴇᴅ ɪɴᴠɪᴛᴇ ʟɪɴᴋs. Lɪɴᴋs
-   ᴀʀᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʀᴏᴛᴀᴛᴇᴅ ᴀɴᴅ ᴄᴀᴄʜᴇᴅ.
-
-📢 𝗕𝗿𝗼𝗮𝗱𝗰𝗮𝘀𝘁
-↳ Sᴇɴᴅ ᴀɴʏ ᴍᴇssᴀɢᴇ ᴛʏᴘᴇ (ᴛᴇxᴛ, ᴘʜᴏᴛᴏ,
-   ᴠɪᴅᴇᴏ ᴇᴛᴄ.) ᴛᴏ ᴀʟʟ ᴜsᴇʀs ᴡɪᴛʜ ᴀ ʟɪᴠᴇ
-   ᴘʀᴏɢʀᴇss ʙᴀʀ. Sɪʟᴇɴᴛ ᴍᴏᴅᴇ ᴀʟsᴏ ᴀᴠᴀɪʟᴀʙʟᴇ.
-
-🔗 𝗙𝗼𝗿𝗺𝗮𝘁𝘁𝗲𝗱 𝗟𝗶𝗻𝗸 (/flink)
-↳ Gᴇɴᴇʀᴀᴛᴇ ᴍᴜʟᴛɪᴘʟᴇ ǫᴜᴀʟɪᴛʏ ʟɪɴᴋs ᴡɪᴛʜ
-   ɪɴʟɪɴᴇ ʙᴜᴛᴛᴏɴs ɪɴ ᴀ ᴄᴜsᴛᴏᴍ ғᴏʀᴍᴀᴛ
-   (360P, 480P, 720P, 1080P, 4K ᴇᴛᴄ.)
-
-🚫 𝗕𝗮𝗻 𝗦𝘆𝘀𝘁𝗲𝗺
-↳ Bᴀɴ ᴜsᴇʀs ᴛᴏ ʙʟᴏᴄᴋ ᴛʜᴇᴍ ғʀᴏᴍ ɪɴᴛᴇʀᴀᴄᴛɪɴɢ
-   ᴡɪᴛʜ ᴛʜᴇ ʙᴏᴛ ᴄᴏᴍᴘʟᴇᴛᴇʟʏ.
-
-👥 𝗔𝗱𝗺𝗶𝗻 𝗦𝘆𝘀𝘁𝗲𝗺
-↳ Gʀᴀɴᴛ ᴛʀᴜsᴛᴇᴅ ᴜsᴇʀs ᴀᴅᴍɪɴ ᴀᴄᴄᴇss ᴛᴏ
-   ʜᴇʟᴘ ᴍᴀɴᴀɢᴇ ᴛʜᴇ ʙᴏᴛ ᴀɴᴅ ɪᴛs ᴜsᴇʀs.
-</blockquote></b>"""
+🔄 /restart
+↳ Restart the bot instance.
+</blockquote></b>""")
 
 
-HELP_FSUB_CMDS = """<b>📡 𝗙𝗢𝗥𝗖𝗘 𝗦𝗨𝗕 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦
+HELP_SETTINGS = S("""<b>⚙️ SETTINGS & CONFIGURATION
 
 <blockquote expandable>
-📋 <b>/forcesub</b>
-↳ Vɪᴇᴡ ᴀʟʟ ғᴏʀᴄᴇ-sᴜʙ ʀᴇʟᴀᴛᴇᴅ ᴄᴏᴍᴍᴀɴᴅs.
+🗑 /auto_del
+↳ Control auto-delete mode and its timer.
+   When active, all delivered files are removed after the set duration.
 
-📋 <b>/fsub_chnl</b> (ᴀᴅᴍɪɴs)
-↳ Lɪsᴛ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ғᴏʀᴄᴇ-sᴜʙ ᴄʜᴀɴɴᴇʟs ᴡɪᴛʜ
-   ᴛʜᴇɪʀ ɴᴀᴍᴇs ᴀɴᴅ IDs.
+📁 /files
+↳ Manage all file-related settings:
+   • 🔒 Protect Content — prevent users from forwarding or saving files
+   • 🫥 Hide Caption — strip captions from documents and audios before delivery
+   • 🔘 Channel Button — attach a custom inline button to every delivered file
 
-➕ <b>/add_fsub</b> [channel_id(s)] (ᴏᴡɴᴇʀ)
-↳ Aᴅᴅ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴄʜᴀɴɴᴇʟ IDs.
-   Tʜᴇ ʙᴏᴛ ᴍᴜsᴛ ʙᴇ ᴀᴅᴍɪɴ ɪɴ ᴇᴀᴄʜ ᴄʜᴀɴɴᴇʟ.
-   ᴇxᴀᴍᴘʟᴇ: <code>/add_fsub -100xxxxxxxxxx -100yyyyyyyyyy</code>
+📢 /req_fsub
+↳ Toggle Request Force-Sub mode ON or OFF.
+   When ON, private channels use join-request flow instead of direct membership check.
+   Also gives access to advanced request-link management.
 
-➖ <b>/del_fsub</b> [channel_id(s) | all] (ᴏᴡɴᴇʀ)
-↳ Rᴇᴍᴏᴠᴇ sᴘᴇᴄɪғɪᴄ ᴄʜᴀɴɴᴇʟs ᴏʀ ᴄʟᴇᴀʀ ᴀʟʟ.
-   ᴇxᴀᴍᴘʟᴇ: <code>/del_fsub all</code>
-
-📢 <b>/req_fsub</b>
-↳ Tᴏɢɢʟᴇ Rᴇǫᴜᴇsᴛ Fᴏʀᴄᴇ Sᴜʙ ᴍᴏᴅᴇ ON/OFF.
-   Aʟsᴏ ᴀᴄᴄᴇss:
-   • Lɪsᴛ ᴏғ ʀᴇǫᴜᴇsᴛ ᴄʜᴀɴɴᴇʟs & ᴛʜᴇɪʀ ᴜsᴇʀs
-   • Cʟᴇᴀʀ ᴜsᴇʀ ᴅᴀᴛᴀ ᴘᴇʀ ᴄʜᴀɴɴᴇʟ
-   • Dᴇʟᴇᴛᴇ ᴄʜᴀɴɴᴇʟ ᴅᴀᴛᴀ ᴇɴᴛɪʀᴇʟʏ
-   • Rᴇᴠᴏᴋᴇ & ᴄʟᴇᴀʀ sᴛᴏʀᴇᴅ ʀᴇǫᴜᴇsᴛ ʟɪɴᴋs
-</blockquote></b>"""
+🛠 /us (User-Settings)
+↳ Advanced configurations:
+   • ⏱ Set Invite Link Expiry — auto-rotate invite links at set intervals
+   • 🎭 Set Mask Button — add a custom button on the force-sub screen
+</blockquote></b>""")
 
 
-HELP_USER_CMDS = """<b>👤 𝗨𝗦𝗘𝗥 𝗠𝗔𝗡𝗔𝗚𝗘𝗠𝗘𝗡𝗧 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦
+HELP_FEATURES = S("""<b>✨ FEATURES OVERVIEW
 
 <blockquote expandable>
-📋 <b>/admin_list</b> (ᴏᴡɴᴇʀ)
-↳ Vɪᴇᴡ ᴀʟʟ ᴄᴜʀʀᴇɴᴛ ʙᴏᴛ ᴀᴅᴍɪɴs.
+🔐 Force Sub — Users must join all channels before accessing files. Supports public & private channels.
 
-➕ <b>/add_admins</b> [user_id(s)] (ᴏᴡɴᴇʀ)
-↳ Aᴅᴅ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴜsᴇʀs ᴀs ʙᴏᴛ ᴀᴅᴍɪɴs.
-   Aᴅᴍɪɴs ᴄᴀɴ ᴜsᴇ ᴀʟʟ ᴀᴅᴍɪɴ-ʟᴇᴠᴇʟ ᴄᴏᴍᴍᴀɴᴅs.
+🚦 Request FSub — Private channel join-request flow; user is granted access once request is sent.
 
-➖ <b>/del_admins</b> [user_id(s) | all] (ᴏᴡɴᴇʀ)
-↳ Rᴇᴠᴏᴋᴇ ᴀᴅᴍɪɴ ᴘʀɪᴠɪʟᴇɢᴇs ғʀᴏᴍ ᴜsᴇʀ(s).
+🗑 Auto Delete — Files auto-removed after a set timer with a re-download button sent to the user.
 
-📋 <b>/banuser_list</b> (ᴀᴅᴍɪɴs)
-↳ Vɪᴇᴡ ᴀʟʟ ʙᴀɴɴᴇᴅ ᴜsᴇʀs ᴡɪᴛʜ ᴛʜᴇɪʀ ɴᴀᴍᴇs.
+🔒 Protect Content — Prevents forwarding or saving of delivered files.
 
-🚫 <b>/add_banuser</b> [user_id(s)] (ᴀᴅᴍɪɴs)
-↳ Bᴀɴ ᴏɴᴇ ᴏʀ ᴍᴜʟᴛɪᴘʟᴇ ᴜsᴇʀs. Bᴀɴɴᴇᴅ ᴜsᴇʀs
-   ᴄᴀɴɴᴏᴛ ᴜsᴇ /sᴛᴀʀᴛ ᴏʀ /ʜᴇʟᴘ.
+🫥 Hide Caption — Strips captions from documents & audios before delivery.
 
-✅ <b>/del_banuser</b> [user_id(s) | all] (ᴀᴅᴍɪɴs)
-↳ Uɴʙᴀɴ ᴜsᴇʀ(s) ᴏʀ ᴄʟᴇᴀʀ ᴛʜᴇ ᴇɴᴛɪʀᴇ ʙᴀɴ ʟɪsᴛ.
+🔘 Channel Button — Adds a custom inline button to every delivered file.
 
-📋 <b>/users</b>
-↳ Vɪᴇᴡ ᴀʟʟ ᴜsᴇʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ ᴄᴏᴍᴍᴀɴᴅs.
-</blockquote></b>"""
+🎭 Mask Button — Custom button on the force-sub screen linking to any URL.
+
+⏱ Link Expiry — Time-limited invite links, auto-rotated and cached.
+
+📢 Broadcast — Send any message to all users with live progress bar. Silent mode supported.
+
+🔗 /flink — Multi-quality links (360P / 720P / 1080P / 4K) with inline buttons.
+
+🚫 Ban System — Block users from interacting with the bot.
+
+👥 Admin System — Grant trusted users admin-level access.
+</blockquote></b>""")
 
 
-# ══════════════════════════════════════════════════════════════════
-#                      KEYBOARD BUILDERS
-# ══════════════════════════════════════════════════════════════════
+HELP_FSUB_CMDS = S("""<b>📡 FORCE-SUB COMMANDS
+
+<blockquote expandable>
+📋 /forcesub
+↳ View all force-sub related commands.
+
+📋 /fsub_chnl (admins)
+↳ List all active force-sub channels with their names and IDs.
+
+➕ /add_fsub [channel_id(s)] (owner)
+↳ Add one or more channel IDs. The bot must be admin in each channel.
+   Example: /add_fsub -100xxxxxxxxxx -100yyyyyyyyyy
+
+➖ /del_fsub [channel_id(s) | all] (owner)
+↳ Remove specific channels or clear all at once.
+   Example: /del_fsub all
+
+📢 /req_fsub
+↳ Toggle Request Force-Sub mode ON or OFF. Also access:
+   • List of request channels and their user counts
+   • Clear user data per channel
+   • Delete channel data entirely
+   • Revoke and clear stored request links
+</blockquote></b>""")
+
+
+HELP_USER_CMDS = S("""<b>👤 USER MANAGEMENT COMMANDS
+
+<blockquote expandable>
+📋 /admin_list (owner)
+↳ View all current bot admins.
+
+➕ /add_admins [user_id(s)] (owner)
+↳ Add one or more users as bot admins. Admins can use all admin-level commands.
+
+➖ /del_admins [user_id(s) | all] (owner)
+↳ Revoke admin privileges from user(s).
+
+📋 /banuser_list (admins)
+↳ View all banned users with their names.
+
+🚫 /add_banuser [user_id(s)] (admins)
+↳ Ban one or more users. Banned users cannot use /start or /help.
+
+✅ /del_banuser [user_id(s) | all] (admins)
+↳ Unban user(s) or clear the entire ban list.
+
+📋 /users
+↳ View all user management commands.
+</blockquote></b>""")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#                          KEYBOARD BUILDERS
+# ══════════════════════════════════════════════════════════════════════════════
 
 def main_help_keyboard(user_id: int, is_owner: bool, is_adm: bool):
     buttons = [
         [
-            InlineKeyboardButton("🤖 Aᴅᴍɪɴ Cᴍᴅs", callback_data="help:admin"),
-            InlineKeyboardButton("✨ Fᴇᴀᴛᴜʀᴇs",    callback_data="help:features"),
+            InlineKeyboardButton(S("🤖 Admin Cmds"),   callback_data="help:admin"),
+            InlineKeyboardButton(S("✨ Features"),      callback_data="help:features"),
         ],
         [
-            InlineKeyboardButton("📡 Fᴏʀᴄᴇ Sᴜʙ",   callback_data="help:fsub"),
-            InlineKeyboardButton("👤 Usᴇʀ Mɢᴍᴛ",   callback_data="help:users"),
+            InlineKeyboardButton(S("📡 Force Sub"),     callback_data="help:fsub"),
+            InlineKeyboardButton(S("👤 User Mgmt"),     callback_data="help:users"),
         ],
         [
-            InlineKeyboardButton("⚙️ Sᴇᴛᴛɪɴɢs",    callback_data="help:settings"),
+            InlineKeyboardButton(S("⚙️ Settings"),      callback_data="help:settings"),
         ],
     ]
     if is_owner:
-        buttons.append([InlineKeyboardButton("👑 Oᴡɴᴇʀ Cᴍᴅs", callback_data="help:owner")])
-    buttons.append([InlineKeyboardButton("Cʟᴏsᴇ ✖️", callback_data="close")])
+        buttons.append([InlineKeyboardButton(S("👑 Owner Cmds"), callback_data="help:owner")])
+    buttons.append([InlineKeyboardButton(S("Close ✖️"), callback_data="close")])
     return InlineKeyboardMarkup(buttons)
 
 
 def back_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("⬅️ Bᴀᴄᴋ", callback_data="help:main"),
-         InlineKeyboardButton("Cʟᴏsᴇ ✖️", callback_data="close")]
-    ])
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(S("⬅️ Back"),   callback_data="help:main"),
+        InlineKeyboardButton(S("Close ✖️"), callback_data="close")
+    ]])
 
 
-# ══════════════════════════════════════════════════════════════════
-#                        /help COMMAND
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+#                             /help COMMAND
+# Admins / Owner  →  full interactive help panel with sections
+# Regular users   →  HELP_TEXT from FORMATS.py (simple user guide)
+# ══════════════════════════════════════════════════════════════════════════════
 
 @Bot.on_message(filters.command('help') & filters.private & ~banUser)
 async def help_command(client: Client, message: Message):
@@ -284,49 +245,66 @@ async def help_command(client: Client, message: Message):
     is_owner = (user_id == OWNER_ID)
     is_adm   = is_owner or await ocean.admin_exist(user_id)
 
-    await message.reply_photo(
-        photo   = random.choice(PICS),
-        caption = HELP_PANEL_MAIN.format(
-            first    = message.from_user.first_name,
-            mention  = message.from_user.mention,
-        ),
-        reply_markup          = main_help_keyboard(user_id, is_owner, is_adm),
-        message_effect_id     = 5046509860389126442,   # 🎉
-        disable_web_page_preview = True
-    )
+    if is_adm:
+        # ── Admin / Owner: full help panel ────────────────────────
+        await message.reply_photo(
+            photo    = random.choice(PICS),
+            caption  = HELP_PANEL_MAIN.format(
+                first   = message.from_user.first_name,
+                mention = message.from_user.mention,
+            ),
+            reply_markup      = main_help_keyboard(user_id, is_owner, is_adm),
+            message_effect_id = 5046509860389126442,
+        )
+    else:
+        from config import SUPPORT_GROUP
+        buttons = []
+        if SUPPORT_GROUP:
+            buttons.append([InlineKeyboardButton(S("🌐 Support Group"), url=SUPPORT_GROUP)])
+        buttons.append([InlineKeyboardButton(S("Close ✖️"), callback_data="close")])
+
+        await message.reply_photo(
+            photo    = random.choice(PICS),
+            caption  = HELP_TEXT.format(
+                mention = message.from_user.mention,
+            ),
+            reply_markup      = InlineKeyboardMarkup(buttons),
+            message_effect_id = 5046509860389126442,
+        )
+
     try:
         await message.delete()
-    except:
+    except Exception:
         pass
 
 
-# ══════════════════════════════════════════════════════════════════
-#                     CALLBACK QUERY HANDLER
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+#                        CALLBACK QUERY HANDLER
+# ══════════════════════════════════════════════════════════════════════════════
 
 SECTION_MAP = {
-    "help:admin":    (HELP_ADMIN_CMDS,  "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
-    "help:owner":    (HELP_OWNER_CMDS,  "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
-    "help:settings": (HELP_SETTINGS,    "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
-    "help:features": (HELP_FEATURES,    "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
-    "help:fsub":     (HELP_FSUB_CMDS,   "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
-    "help:users":    (HELP_USER_CMDS,   "https://graph.org//file/10f310dd6a7cb56ad7c0b.jpg"),
+    "help:admin":    (HELP_ADMIN_CMDS,  "https://i.ibb.co/hxTXzhrm/help.png"),
+    "help:owner":    (HELP_OWNER_CMDS,  "https://i.ibb.co/hxTXzhrm/help.png"),
+    "help:settings": (HELP_SETTINGS,    "https://i.ibb.co/hxTXzhrm/help.png"),
+    "help:features": (HELP_FEATURES,    "https://i.ibb.co/hxTXzhrm/help.png"),
+    "help:fsub":     (HELP_FSUB_CMDS,   "https://i.ibb.co/hxTXzhrm/help.png"),
+    "help:users":    (HELP_USER_CMDS,   "https://i.ibb.co/hxTXzhrm/help.png"),
 }
+
 
 @Bot.on_callback_query(filters.regex(r'^help:'))
 async def help_callback(client: Bot, query: CallbackQuery):
     data    = query.data
     user_id = query.from_user.id
 
-    # ── owner-only guard ──────────────────────────────────────────
+    # owner-only guard
     if data == "help:owner" and user_id != OWNER_ID:
-        return await query.answer("❌ Yᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴛʜᴇ Oᴡɴᴇʀ !", show_alert=True)
+        return await query.answer(S("❌ This section is for the owner only."), show_alert=True)
 
-    # ── main panel (back button) ──────────────────────────────────
+    # back to main panel
     if data == "help:main":
         is_owner = (user_id == OWNER_ID)
         is_adm   = is_owner or await ocean.admin_exist(user_id)
-
         await query.edit_message_media(
             InputMediaPhoto(
                 media   = random.choice(PICS),
@@ -339,7 +317,7 @@ async def help_callback(client: Bot, query: CallbackQuery):
         )
         return await query.answer()
 
-    # ── section pages ─────────────────────────────────────────────
+    # section pages
     if data in SECTION_MAP:
         caption, photo = SECTION_MAP[data]
         try:
@@ -348,7 +326,6 @@ async def help_callback(client: Bot, query: CallbackQuery):
                 reply_markup = back_keyboard()
             )
         except Exception:
-            # fallback: edit text only if media edit fails
             await query.edit_message_caption(
                 caption      = caption,
                 reply_markup = back_keyboard()

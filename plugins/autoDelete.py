@@ -1,80 +1,86 @@
-# +++ Made By King [telegram username: @Shidoteshika1] +++
-
-#from bot import Bot
 import asyncio
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
-from datetime import datetime, timedelta
+import re
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from helper_func import S
 
-#Time conversion for auto delete timer
+# ── Time conversion ──────────────────────────────────────────────────────────
 def convert_time(duration_seconds: int) -> str:
     periods = [
-        ('Yᴇᴀʀ', 60 * 60 * 24 * 365),
-        ('Mᴏɴᴛʜ', 60 * 60 * 24 * 30),
-        ('Dᴀʏ', 60 * 60 * 24),
-        ('Hᴏᴜʀ', 60 * 60),
-        ('Mɪɴᴜᴛᴇ', 60),
-        ('Sᴇᴄᴏɴᴅ', 1)
+        ('Year',   60 * 60 * 24 * 365),
+        ('Month',  60 * 60 * 24 * 30),
+        ('Day',    60 * 60 * 24),
+        ('Hour',   60 * 60),
+        ('Minute', 60),
+        ('Second', 1),
     ]
-
     parts = []
-    for period_name, period_seconds in periods:
-        if duration_seconds >= period_seconds:
-            num_periods = duration_seconds // period_seconds
-            duration_seconds %= period_seconds
-            parts.append(f"{num_periods} {period_name}{'s' if num_periods > 1 else ''}")
+    for name, secs in periods:
+        if duration_seconds >= secs:
+            n = duration_seconds // secs
+            duration_seconds %= secs
+            parts.append(f"{n} {name}{'s' if n > 1 else ''}")
 
-    if len(parts) == 0:
-        return "0 Sᴇᴄᴏɴᴅ"
-    elif len(parts) == 1:
-        return parts[0]
-    else:
-        return ', '.join(parts[:-1]) +' ᴀɴᴅ '+ parts[-1]
+    if not parts:
+        return stylish_text("0 Seconds")
+    if len(parts) == 1:
+        return stylish_text(parts[0])
+    return stylish_text(', '.join(parts[:-1]) + ' and ' + parts[-1])
+
+DEL_MSG = S(
+    "<blockquote>‼️ HEADS UP — READ BEFORE DOWNLOADING</blockquote>\n\n"
+    "<blockquote>⏳ This file will be removed in <a href=\"https://t.me/{username}\">{time}</a></blockquote>\n"
+    "<blockquote>(Copyright policy enforcement)</blockquote>\n\n"
+    "<blockquote>📌 Forward this file to Saved Messages or another chat, then download from there.</blockquote>\n\n"
+    "‣ Updates: <a href='https://t.me/Anime_Ocean_Official'>Animes Ocean</a>\n"
+    "‣ Support: <a href='https://t.me/OceanXBotz'>OceanXBotz</a>"
+)
 
 
-#=====================================================================================##
-#.........Auto Delete Functions.......#
-#=====================================================================================##
-DEL_MSG = """<blockquote>‼️ 𝗜𝗠𝗣𝗢𝗥𝗧𝗔𝗡𝗧 || 𝗥𝗘𝗔𝗗 𝗕𝗘𝗙𝗢𝗥𝗘 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗜𝗡𝗚</blockquote>
-
-<blockquote>⏳ Tʜɪs Vɪᴅᴇᴏ/Fɪʟᴇ Wɪʟʟ Bᴇ Dᴇʟᴇᴛᴇᴅ Iɴ <a href="https://t.me/{username}">{time}</a></blockquote>
-<blockquote>(Dᴜᴇ Tᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs)</blockquote>
-
-<blockquote>👉 Pʟᴇᴀsᴇ Fᴏʀᴡᴀʀᴅ Tʜɪs Fɪʟᴇ Tᴏ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs ᴏʀ Sᴏᴍᴇᴡʜᴇʀᴇ Eʟsᴇ Aɴᴅ Sᴛᴀʀᴛ Dᴏᴡɴʟᴏᴀᴅɪɴɢ Tʜᴇʀᴇ</blockquote>
-
-‣ ᴜᴘᴅᴀᴛᴇs: <a href='https://t.me/paradoxbotz'>ᴘᴀʀᴀᴅᴏx ʙᴏᴛᴢ</a>
-‣ ꜱᴜᴘᴘᴏʀᴛ: <a href='https://t.me/paradoxchats'>ᴘᴀʀᴀᴅᴏx ᴄʜᴀᴛꜱ</a></b></b>"""
-
-#Function for provide auto delete notification message
-async def auto_del_notification(bot_username, msg, delay_time, transfer): 
-    temp = await msg.reply_text(DEL_MSG.format(username=bot_username, time=convert_time(delay_time)), disable_web_page_preview = True) 
+async def auto_del_notification(bot_username, msg, delay_time, transfer):
+    temp = await msg.reply_text(
+        DEL_MSG.format(username=bot_username, time=convert_time(delay_time)),
+        disable_web_page_preview=True
+    )
 
     await asyncio.sleep(delay_time)
+
     try:
         if transfer:
             try:
-                name = "♻️ Cʟɪᴄᴋ Hᴇʀᴇ"
+                name = S("♻️ Tap Here")
                 link = f"https://t.me/{bot_username}?start={transfer}"
-                button = [[InlineKeyboardButton(text=name, url=link), InlineKeyboardButton(text="Cʟᴏsᴇ ✖️", callback_data = "close")]]
-
-                await temp.edit_text(text=f"<b>Pʀᴇᴠɪᴏᴜs Mᴇssᴀɢᴇs/Fɪʟᴇs ᴡᴇʀᴇ Sᴜᴄᴄᴇssғᴜʟʟʏ Dᴇʟᴇᴛᴇᴅ 🗑\n\n<blockquote>Iғ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ɢᴇᴛ ᴛʜᴇ ғɪʟᴇs ᴀɢᴀɪɴ, ᴛʜᴇɴ ᴄʟɪᴄᴋ: [<a href={link}>{name}</a>] ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ ᴇʟsᴇ ᴄʟᴏsᴇ ᴛʜɪs ᴍᴇssᴀɢᴇ.</blockquote></b>", reply_markup=InlineKeyboardMarkup(button), disable_web_page_preview = True)
-
+                button = [[
+                    InlineKeyboardButton(text=name, url=link),
+                    InlineKeyboardButton(text=S("Dismiss ✖️"), callback_data="close")
+                ]]
+                await temp.edit_text(
+                    text=S(
+                        f"<b>Previous files have been removed. 🗑\n\n"
+                        f"<blockquote>To retrieve the files again, tap the "
+                        f"[<a href={link}>{name}</a>] button below, or close this message.</blockquote></b>"
+                    ),
+                    reply_markup=InlineKeyboardMarkup(button),
+                    disable_web_page_preview=True
+                )
             except Exception as e:
-                await temp.edit_text(f"<b><blockquote>Pʀᴇᴠɪᴏᴜs Mᴇssᴀɢᴇ ᴡᴀs Dᴇʟᴇᴛᴇᴅ 🗑</blockquote></b>")
-                print(f"Error occured while editing the Delete message: {e}")
+                await temp.edit_text(S("<b><blockquote>Previous message has been removed. 🗑</blockquote></b>"))
+                print(f"Error while editing delete message: {e}")
         else:
-            await temp.edit_text(f"<b><blockquote>Pʀᴇᴠɪᴏᴜs Mᴇssᴀɢᴇ ᴡᴀs Dᴇʟᴇᴛᴇᴅ 🗑</blockquote></b>")
+            await temp.edit_text(S("<b><blockquote>Previous message has been removed. 🗑</blockquote></b>"))
 
     except Exception as e:
-        print(f"Error occured while editing the Delete message: {e}")
-        await temp.edit_text(f"<b><blockquote>Pʀᴇᴠɪᴏᴜs Mᴇssᴀɢᴇ ᴡᴀs Dᴇʟᴇᴛᴇᴅ 🗑</blockquote></b>")
+        print(f"Error while editing delete message: {e}")
+        await temp.edit_text(S("<b><blockquote>Previous message has been removed. 🗑</blockquote></b>"))
 
-    try: await msg.delete()
-    except Exception as e: print(f"Error occurred on auto_del_notification() : {e}")
+    try:
+        await msg.delete()
+    except Exception as e:
+        print(f"Error in auto_del_notification(): {e}")
 
 
-#Function for deleteing files/Messages.....
-async def delete_message(msg, delay_time): 
+async def delete_message(msg, delay_time):
     await asyncio.sleep(delay_time)
-    
-    try: await msg.delete()
-    except Exception as e: print(f"Error occurred on delete_message() : {e}")
+    try:
+        await msg.delete()
+    except Exception as e:
+        print(f"Error in delete_message(): {e}")

@@ -23,20 +23,21 @@ CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002217183599"))
 OWNER_ID = int(os.environ.get("OWNER_ID", "7535950439"))
 
 #SUPPORT_GROUP: This is used for normal users for getting help if they don't understand how to use the bot --⚠ OPTIONAL--
-SUPPORT_GROUP = os.environ.get("SUPPORT_GROUP", "https://t.me/Animes_Ocean_Group")
+SUPPORT_GROUP = os.environ.get("SUPPORT_GROUP", "https://t.me/Animes_chat_ocean")
 
 #Port
 PORT = os.environ.get("PORT", "8089")
 
 #Database --⚠️ REQUIRED--
-DB_URI = f"mongodb+srv://{username}:{password}@igivefun.xmmog6e.mongodb.net/?retryWrites=true&w=majority"
 
 DB_NAME = os.environ.get("DATABASE_NAME", "aqua2")
+
+DB_URI = f"mongodb+srv://{username}:{password}@{DB_NAME}.xmmog6e.mongodb.net/?retryWrites=true&w=majority"
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
 #Collection of pics for Bot // #Optional but atleast one pic link should be replaced if you don't want predefined links
-PICS = (os.environ.get("PICS", "https://i.ibb.co/7J9t8FXy/x.jpg")).split() #Required
+PICS = (os.environ.get("PICS", "https://i.ibb.co/nqJ06JGp/start.jpg")).split() #Required
 
 #set your Custom Caption here, Keep None for Disable Custom Caption
 CUSTOM_CAPTION = os.environ.get("CUSTOM_CAPTION", "<b><blockquote>⋆˙⟡ ᴜᴘʟᴏᴀᴅᴇᴅ ʙʏ: <a href='https://t.me/Anime_Ocean_Official'>ᴀɴɪᴍᴇs ᴏᴄᴇᴀɴ</a></blockquote><b/>")
