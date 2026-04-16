@@ -34,7 +34,7 @@ async def check_admin(filter, client, update):
 
 # Check user subscription in Channels in a more optimized way
 async def is_subscribed(filter, client, update):
-    Channel_ids = client.CHANNEL_LIST
+    Channel_ids = getattr(client, 'CHANNEL_LIST', None)
     
     if not Channel_ids:
         return True
@@ -64,7 +64,7 @@ async def is_userJoin(client, user_id, channel_id):
         return member.status in {ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER}
         
     except UserNotParticipant:
-        if client.REQFSUB:
+        if getattr(client, 'REQFSUB', False):
                 return await ocean.reqSent_user_exist(channel_id, user_id)
             
         return False
@@ -120,13 +120,25 @@ async def get_messages(client, message_ids):
         print(f'Error occured on get_messages, reason: {e}')
 
 async def get_message_id(client, message):
-    if message.forward_from_chat:
-        if message.forward_from_chat.id == client.db_channel.id:
-            return message.forward_from_message_id
-        else:
+    # Use forward_origin (new API) with fallback to deprecated properties
+    forward_origin = getattr(message, 'forward_origin', None)
+
+    if forward_origin:
+        origin_type = getattr(forward_origin, '_', '') or type(forward_origin).__name__
+
+        # MessageOriginChannel — forwarded from a channel
+        sender_chat = getattr(forward_origin, 'chat', None) or getattr(forward_origin, 'sender_chat', None)
+        if sender_chat:
+            if sender_chat.id == client.db_channel.id:
+                return getattr(forward_origin, 'message_id', 0)
+            else:
+                return 0
+
+        # MessageOriginHiddenUser — anonymous sender name, can't resolve
+        sender_user_name = getattr(forward_origin, 'sender_user_name', None)
+        if sender_user_name:
             return 0
-    elif message.forward_sender_name:
-        return 0
+
     elif message.text:
         pattern = r"https://t.me/(?:c/)?(.*)/(\d+)"
         matches = re.match(pattern,message.text)

@@ -84,7 +84,7 @@ async def format_status_msg(message, user_id: int) -> str:
     ])
     link_format = format_data.get(user_id, S('--- None ---'))
     await message.edit(
-        text=S(f"<b>🔗 FORMATTED LINK:\n\nCurrent Format\n<blockquote><code>{link_format}</code></blockquote></b>"),
+        text=(f"<b>🔗 ꜰᴏʀᴍᴀᴛᴛᴇᴅ ʟɪɴᴋ:\n\nᴄᴜʀʀᴇɴᴛ ꜰᴏʀᴍᴀᴛ\n<blockquote><code>{link_format}</code></blockquote></b>"),
         reply_markup=buttons
     )
 
@@ -710,6 +710,6 @@ async def cb_handler(client: Bot, query: CallbackQuery):
         final_message = '\n'.join(output_txt)
         inline_buttons = make_inline_button(final_message)
         await channel_message.reply(
-            text=S(f'<b>⬇️ Here is your formatted link:</b>\n\n<blockquote><code>{final_message}</code></blockquote>'),
+            text=(f'<b>⬇️ ʜᴇʀᴇ ɪꜱ ʏᴏᴜʀ ꜰᴏʀᴍᴀᴛᴛᴇᴅ ʟɪɴᴋ:</b>\n\n<blockquote><code>{final_message}</code></blockquote>'),
             reply_markup=inline_buttons, quote=True, disable_web_page_preview=True
         )

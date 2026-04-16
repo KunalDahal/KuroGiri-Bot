@@ -75,6 +75,11 @@ async def start_command(client: Client, message: Message):
             button_name, button_link = await ocean.get_channel_button_link()
 
         for idx, msg in enumerate(messages):
+            if not (msg.text or msg.document or msg.photo or msg.video or
+                    msg.audio or msg.voice or msg.video_note or msg.sticker or
+                    msg.animation or msg.contact or msg.location or msg.poll):
+                continue
+
             if bool(CUSTOM_CAPTION) & bool(msg.document):
                 caption = CUSTOM_CAPTION.format(
                     previouscaption="" if not msg.caption else msg.caption.html,
@@ -97,7 +102,7 @@ async def start_command(client: Client, message: Message):
                     parse_mode=ParseMode.HTML, reply_markup=reply_markup,
                     protect_content=PROTECT_MODE
                 )
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(1)
 
                 if AUTO_DEL:
                     asyncio.create_task(delete_message(copied_msg, DEL_TIMER))
@@ -111,7 +116,7 @@ async def start_command(client: Client, message: Message):
                     parse_mode=ParseMode.HTML, reply_markup=reply_markup,
                     protect_content=PROTECT_MODE
                 )
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(1)
 
                 if AUTO_DEL:
                     asyncio.create_task(delete_message(copied_msg, DEL_TIMER))

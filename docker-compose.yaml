@@ -1,8 +1,8 @@
 services:
   telegram-bot:
     build: .
-    container_name: aqua2
+    container_name: igivefun
     restart: unless-stopped
 
     ports:
-      - "127.0.0.1:8089:8089"
+      - "127.0.0.1:8080:8080"

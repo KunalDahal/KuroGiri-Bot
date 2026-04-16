@@ -30,7 +30,7 @@ async def cancel_broadcast(client: Bot, message: Message):
     async with cancel_lock:
         is_canceled = True
 
-@Bot.on_message(filters.command('broadcast') & filters.private & is_admin)
+@Bot.on_message(filters.command('broadcast') & filters.private & filters.user(OWNER_ID))
 async def send_text(client: Bot, message: Message):
     global is_canceled
     async with cancel_lock:

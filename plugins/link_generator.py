@@ -58,7 +58,7 @@ async def batch(client: Client, message: Message):
         InlineKeyboardButton(S("🔗 Share Link"), url=f'https://telegram.me/share/url?url={link}')
     ]])
     await second_message.reply_text(
-        S(f"<b>Your batch link is ready:</b>\n<blockquote>{link}</blockquote>"),
+        (f"<b>ʏᴏᴜʀ ʙᴀᴛᴄʜ ʟɪɴᴋ ɪꜱ ʀᴇᴀᴅʏ:</b>\n<blockquote><code>{link}</code></blockquote>"),
         quote=True, reply_markup=reply_markup, disable_web_page_preview=True
     )
 
@@ -93,6 +93,6 @@ async def link_generator(client: Client, message: Message):
         InlineKeyboardButton(S("🔗 Share Link"), url=f'https://telegram.me/share/url?url={link}')
     ]])
     await channel_message.reply_text(
-        S(f"<b>Your link is ready:</b>\n<blockquote>{link}</blockquote>"),
+        (f"<b>ʏᴏᴜʀ ʟɪɴᴋ ɪꜱ ʀᴇᴀᴅʏ:2a</b>\n<blockquote>{link}</blockquote>"),
         quote=True, reply_markup=reply_markup, disable_web_page_preview=True
     )
